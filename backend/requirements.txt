@@ -1,0 +1,3 @@
+Flask==2.3.*
+rpi_ws281x>=4.3.0
+adafruit-circuitpython-neopixel>=6.3.0
