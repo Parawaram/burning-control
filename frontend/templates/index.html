@@ -1,17 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Burning Suit Control</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Burning Suit Control{% endblock %}
+{% block content %}
   <h1>LED Ring Control</h1>
-
   <input type="color" id="picker" value="#ff0000">
-  <button id="set">Set Color</button>
-  <button id="off">Off</button>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+  <button id="set" class="btn btn-primary">Set Color</button>
+  <button id="off" class="btn btn-secondary">Off</button>
+{% endblock %}
+{% block scripts %}
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

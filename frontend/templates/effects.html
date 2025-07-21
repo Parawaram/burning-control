@@ -1,23 +1,16 @@
-<!-- frontend/templates/effects.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Burning Suit Effects</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}Burning Suit Effects{% endblock %}
+{% block content %}
   <h1>LED Ring Effects</h1>
   <label for="brightness">Brightness</label>
   <input type="range" id="brightness" min="0" max="0.5" step="0.05" value="0.3">
-
-  <div>
-    <button onclick="sendAnimation('rainbow')">Rainbow</button>
-    <button onclick="sendAnimation('pulse')">Pulse</button>
-    <button onclick="sendAnimation('chase')">Chase</button>
-    <button onclick="turnOff()">Off</button>
+  <div class="mt-3">
+    <button class="btn btn-primary me-2" onclick="sendAnimation('rainbow')">Rainbow</button>
+    <button class="btn btn-primary me-2" onclick="sendAnimation('pulse')">Pulse</button>
+    <button class="btn btn-primary me-2" onclick="sendAnimation('chase')">Chase</button>
+    <button class="btn btn-secondary" onclick="turnOff()">Off</button>
   </div>
-
+{% endblock %}
+{% block scripts %}
   <script src="{{ url_for('static', filename='effects.js') }}"></script>
-</body>
-</html>
+{% endblock %}
