@@ -12,6 +12,26 @@ def index():
 def effects():
     return render_template('effects.html')
 
+@app.route('/fans')
+def fans():
+    return render_template('fans.html')
+
+@app.route('/leds')
+def leds():
+    return render_template('leds.html')
+
+@app.route('/cooling')
+def cooling():
+    return render_template('cooling.html')
+
+@app.route('/pump')
+def pump():
+    return render_template('pump.html')
+
+@app.route('/monitor')
+def monitor():
+    return render_template('monitor.html')
+
 @app.post('/api/color')
 def api_color():
     data = request.get_json()
