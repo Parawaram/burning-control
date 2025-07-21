@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
+import random
+import time
 
 app = Flask(
     __name__,
@@ -7,15 +9,35 @@ app = Flask(
     static_folder='../frontend/static'
 )
 
+# Track last generated status to update once per second
+_last_status = {
+    'temperature': 36.6,
+    'suit_temperature': 31.4,
+    'voltage': 12.3,
+    'cooling_status': 'OFF',
+    'fans': 'IDLE',
+}
+_last_update = 0.0
+
 
 def get_fake_status():
-    return {
-        'temperature': 36.6,
-        'suit_temperature': 31.4,
-        'voltage': 12.3,
-        'cooling_status': 'OFF',
-        'fans': 'IDLE',
-    }
+    """Return fake status values with slight random variation.
+
+    The values are regenerated at most once per second to simulate
+    periodic sensor updates.
+    """
+    global _last_status, _last_update
+    now = time.time()
+    if now - _last_update >= 1:
+        _last_status = {
+            'temperature': round(36.6 + random.uniform(-0.5, 0.5), 1),
+            'suit_temperature': round(31.4 + random.uniform(-0.5, 0.5), 1),
+            'voltage': round(12.3 + random.uniform(-0.2, 0.2), 2),
+            'cooling_status': random.choice(['OFF', 'ON']),
+            'fans': random.choice(['IDLE', 'ACTIVE']),
+        }
+        _last_update = now
+    return _last_status
 
 @app.route('/')
 def home():

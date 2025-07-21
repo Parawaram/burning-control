@@ -8,4 +8,5 @@ async function fetchStatus() {
   document.getElementById('fans').textContent = data.fans;
 }
 fetchStatus();
-setInterval(fetchStatus, 3000);
+// Update the status every second
+setInterval(fetchStatus, 1000);
