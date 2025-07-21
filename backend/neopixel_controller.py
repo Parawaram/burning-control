@@ -1,7 +1,7 @@
 import board
 import neopixel
 import time
-from threading import Lock, Thread
+from threading import Lock, Thread, current_thread
 
 LED_COUNT = 12
 LED_PIN = board.D18
@@ -46,7 +46,7 @@ def run_animation(name):
         return t
 
     def rainbow():
-        t = Thread.current_thread()
+        t = current_thread()
         while getattr(t, "do_run", True):
             for j in range(256):
                 for i in range(LED_COUNT):
@@ -56,7 +56,7 @@ def run_animation(name):
                 time.sleep(0.02)
 
     def pulse():
-        t = Thread.current_thread()
+        t = current_thread()
         while getattr(t, "do_run", True):
             for b in range(0, 256, 5):
                 fill((b, 0, 0))
@@ -66,7 +66,7 @@ def run_animation(name):
                 time.sleep(0.02)
 
     def chase():
-        t = Thread.current_thread()
+        t = current_thread()
         while getattr(t, "do_run", True):
             for i in range(LED_COUNT):
                 fill((0, 0, 0))
