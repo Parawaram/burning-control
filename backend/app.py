@@ -1,36 +1,45 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
 
-app = Flask(__name__, template_folder='../frontend/templates',
-                      static_folder='../frontend/static')
+app = Flask(
+    __name__,
+    template_folder='../frontend/templates',
+    static_folder='../frontend/static'
+)
+
+
+def get_fake_status():
+    return {
+        'temperature': 36.6,
+        'suit_temperature': 31.4,
+        'voltage': 12.3,
+        'cooling_status': 'OFF',
+        'fans': 'IDLE',
+    }
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return render_template('v2/home.html')
+
+@app.route('/light')
+def light():
+    return render_template('v2/light.html')
 
 @app.route('/effects')
 def effects():
-    return render_template('effects.html')
-
-@app.route('/fans')
-def fans():
-    return render_template('fans.html')
-
-@app.route('/leds')
-def leds():
-    return render_template('leds.html')
+    return redirect(url_for('light'))
 
 @app.route('/cooling')
 def cooling():
-    return render_template('cooling.html')
+    return render_template('v2/cooling.html')
 
-@app.route('/pump')
-def pump():
-    return render_template('pump.html')
+@app.route('/ventilation')
+def ventilation():
+    return render_template('v2/ventilation.html')
 
 @app.route('/monitor')
 def monitor():
-    return render_template('monitor.html')
+    return render_template('v2/monitor.html')
 
 @app.post('/api/color')
 def api_color():
@@ -57,6 +66,11 @@ def api_animation():
     name = data.get('name')
     run_animation(name)
     return jsonify(status='ok', animation=name)
+
+
+@app.get('/api/status')
+def api_status():
+    return jsonify(get_fake_status())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
