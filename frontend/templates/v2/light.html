@@ -1,0 +1,23 @@
+{% extends 'v2/layout.html' %}
+{% block title %}Light Control{% endblock %}
+{% block content %}
+<h1 class="mb-4">Lighting</h1>
+<div class="mb-3">
+  <label for="picker" class="form-label">Color</label>
+  <input type="color" id="picker" value="#ff0000" class="form-control form-control-color" />
+  <button class="btn btn-primary mt-2" id="set">Set Color</button>
+</div>
+<div class="mb-3">
+  <label for="brightness" class="form-label">Brightness</label>
+  <input type="range" id="brightness" min="0" max="0.5" step="0.05" value="0.3" class="form-range" />
+</div>
+<div class="mb-3">
+  <button class="btn btn-primary me-2" onclick="sendAnimation('rainbow')">Rainbow</button>
+  <button class="btn btn-primary me-2" onclick="sendAnimation('pulse')">Pulse</button>
+  <button class="btn btn-primary me-2" onclick="sendAnimation('chase')">Chase</button>
+  <button class="btn btn-secondary" id="off">Off</button>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='light.js') }}"></script>
+{% endblock %}
