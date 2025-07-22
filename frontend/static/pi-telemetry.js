@@ -12,6 +12,10 @@ const cpuTempChart = makeChart(document.getElementById('cpuTempChart'), 'CPU Tem
 const cpuFreqChart = makeChart(document.getElementById('cpuFreqChart'), 'CPU Freq MHz', 'rgb(54,162,235)');
 const memChart = makeChart(document.getElementById('memChart'), 'Memory MB', 'rgb(75,192,192)');
 const diskChart = makeChart(document.getElementById('diskChart'), 'Disk GB', 'rgb(153,102,255)');
+const cpuTempValue = document.getElementById('cpuTempValue');
+const cpuFreqValue = document.getElementById('cpuFreqValue');
+const memValue = document.getElementById('memValue');
+const diskValue = document.getElementById('diskValue');
 
 function pushData(chart, value) {
   const labels = chart.data.labels;
@@ -25,10 +29,22 @@ function pushData(chart, value) {
 async function fetchTelemetry() {
   const resp = await fetch('/api/telemetry');
   const data = await resp.json();
-  if (data.cpu_temp !== null) pushData(cpuTempChart, data.cpu_temp);
-  if (data.cpu_freq !== null) pushData(cpuFreqChart, data.cpu_freq);
-  if (data.mem_used !== null) pushData(memChart, data.mem_used);
-  if (data.disk_used !== null) pushData(diskChart, data.disk_used);
+  if (data.cpu_temp !== null) {
+    pushData(cpuTempChart, data.cpu_temp);
+    cpuTempValue.textContent = data.cpu_temp;
+  }
+  if (data.cpu_freq !== null) {
+    pushData(cpuFreqChart, data.cpu_freq);
+    cpuFreqValue.textContent = data.cpu_freq;
+  }
+  if (data.mem_used !== null) {
+    pushData(memChart, data.mem_used);
+    memValue.textContent = `${data.mem_used}/${data.mem_total}`;
+  }
+  if (data.disk_used !== null) {
+    pushData(diskChart, data.disk_used);
+    diskValue.textContent = `${data.disk_used}/${data.disk_total}`;
+  }
 }
 
 fetchTelemetry();
