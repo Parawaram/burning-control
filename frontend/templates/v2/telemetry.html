@@ -1,0 +1,14 @@
+{% extends 'v2/layout.html' %}
+{% block title %}Telemetry{% endblock %}
+{% block content %}
+<h1 class="mb-4">Raspberry Pi Telemetry</h1>
+<ul class="list-group">
+  <li class="list-group-item">CPU Temperature: <span id="cpu_temp"></span> °C</li>
+  <li class="list-group-item">CPU Frequency: <span id="cpu_freq"></span> MHz</li>
+  <li class="list-group-item">Memory: <span id="mem_used"></span>/<span id="mem_total"></span> MB</li>
+  <li class="list-group-item">Disk: <span id="disk_used"></span>/<span id="disk_total"></span> GB</li>
+</ul>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='telemetry.js') }}"></script>
+{% endblock %}
