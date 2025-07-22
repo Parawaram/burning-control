@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
+from telemetry_service import read_cpu_temp
 import random
 import time
 import os
 import shutil
-import subprocess
 
 app = Flask(
     __name__,
@@ -42,22 +42,6 @@ def get_fake_status():
         _last_update = now
     return _last_status
 
-
-def read_cpu_temp():
-    """Return CPU temperature in Celsius if available."""
-    try:
-        with open('/sys/class/thermal/thermal_zone0/temp') as f:
-            return round(int(f.read().strip()) / 1000, 1)
-    except FileNotFoundError:
-        try:
-            result = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True)
-            if result.returncode == 0:
-                out = result.stdout.strip()
-                if out.startswith('temp=') and out.endswith("'C"):
-                    return float(out.replace('temp=', '').replace("'C", ''))
-        except Exception:
-            pass
-    return None
 
 
 def read_cpu_freq():
@@ -131,9 +115,9 @@ def ventilation():
 def monitor():
     return render_template('v2/monitor.html')
 
-@app.route('/telemetry')
-def telemetry():
-    return render_template('v2/telemetry.html')
+@app.route('/pi-telemetry')
+def pi_telemetry():
+    return render_template('v2/pi-telemetry.html')
 
 @app.post('/api/color')
 def api_color():
