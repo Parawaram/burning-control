@@ -1,5 +1,6 @@
 import subprocess
 import shutil
+from typing import Optional, Tuple
 
 
 def read_cpu_temp():
@@ -26,6 +27,33 @@ def read_cpu_freq():
         with open(path) as f:
             return int(int(f.read().strip()) / 1000)
     except FileNotFoundError:
+        return None
+
+
+_last_cpu_times: Optional[Tuple[int, int]] = None
+
+
+def read_cpu_usage() -> Optional[float]:
+    """Return CPU usage percentage if available."""
+    global _last_cpu_times
+    try:
+        with open('/proc/stat') as f:
+            parts = f.readline().strip().split()[1:]
+            values = [int(x) for x in parts]
+        idle = values[3] + values[4]
+        total = sum(values)
+        if _last_cpu_times is None:
+            _last_cpu_times = (idle, total)
+            return None
+        last_idle, last_total = _last_cpu_times
+        _last_cpu_times = (idle, total)
+        diff_idle = idle - last_idle
+        diff_total = total - last_total
+        if diff_total == 0:
+            return None
+        usage = 100.0 * (1 - diff_idle / diff_total)
+        return round(usage, 1)
+    except Exception:
         return None
 
 
@@ -60,6 +88,7 @@ def get_telemetry():
     return {
         'cpu_temp': read_cpu_temp(),
         'cpu_freq': read_cpu_freq(),
+        'cpu_usage': read_cpu_usage(),
         'mem_used': mem_used,
         'mem_total': mem_total,
         'disk_used': disk_used,
