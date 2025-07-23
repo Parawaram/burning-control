@@ -3,6 +3,6 @@
 ## Запуск
 
 ```bash
-sudo backend/venv/bin/activate
+source backend/venv/bin/activate
 python backend/app.py
 ```
