@@ -40,14 +40,27 @@ class OLEDApp:
         self.last_update = 0
 
     def _setup_display(self):
+        """Initialize the OLED display if hardware is available."""
         if board is None:
             self.display = None
             return
-        i2c = busio.I2C(board.SCL, board.SDA)
-        self.display = adafruit_ssd1306.SSD1306_I2C(self.WIDTH, self.HEIGHT, i2c, addr=self.addr)
-        self.image = Image.new("1", (self.display.width, self.display.height))
-        self.draw = ImageDraw.Draw(self.image)
-        self.font = ImageFont.load_default()
+        try:
+            i2c = busio.I2C(board.SCL, board.SDA)
+            self.display = adafruit_ssd1306.SSD1306_I2C(
+                self.WIDTH, self.HEIGHT, i2c, addr=self.addr
+            )
+            self.image = Image.new("1", (self.display.width, self.display.height))
+            self.draw = ImageDraw.Draw(self.image)
+            self.font = ImageFont.load_default()
+            log.info("OLED display initialized")
+        except Exception as e:  # pragma: no cover - hardware error
+            log.warning("OLED init failed: %s", e)
+            self.display = None
+
+    def _ensure_display(self):
+        """Try to reinitialize the display if it became unavailable."""
+        if self.display is None:
+            self._setup_display()
 
     def _setup_buttons(self):
         if digitalio is None:
@@ -68,6 +81,7 @@ class OLEDApp:
         self.draw.rectangle((0, 0, self.WIDTH, self.HEIGHT), outline=0, fill=0)
 
     def _update(self):
+        self._ensure_display()
         if not self.display:
             return
         try:
