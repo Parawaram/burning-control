@@ -67,6 +67,10 @@ def ventilation():
 def monitor():
     return render_template('v2/monitor.html')
 
+@app.route('/led7-strip')
+def led7_strip_page():
+    return render_template('v2/led_7_strip.html')
+
 @app.route('/pi-telemetry')
 def pi_telemetry():
     return render_template('v2/pi-telemetry.html')
