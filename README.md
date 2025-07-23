@@ -4,6 +4,20 @@
 
 ```bash
 source backend/venv/bin/activate
-python backend/app.py
-python backend/oled_small.py
+python startup.py
 ```
+
+Для автоматического запуска при загрузке Raspberry Pi скопируйте файл
+`burning-control.service` в `/etc/systemd/system/` и выполните:
+
+```bash
+sudo systemctl enable burning-control.service
+sudo systemctl start burning-control.service
+```
+
+## OLED дисплей
+
+Модуль `oled_small.py` использует дисплей SSD1306 64x48.
+Он подключается к шине I²C (SCL и SDA). Кнопки "влево" и "вправо"
+подключены к выводам D5 и D6 соответственно. Адрес дисплея по умолчанию
+`0x3C`.

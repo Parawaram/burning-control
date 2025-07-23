@@ -1,0 +1,12 @@
+[Unit]
+Description=Burning Control
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /path/to/burning-control/startup.py
+WorkingDirectory=/path/to/burning-control
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
