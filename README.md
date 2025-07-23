@@ -4,7 +4,7 @@
 
 ```bash
 source backend/venv/bin/activate
-python startup.py
+sudo backend/venv/bin/python startup.py
 ```
 
 Для автоматического запуска при загрузке Raspberry Pi скопируйте файл
