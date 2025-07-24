@@ -3,6 +3,7 @@ from neopixel_controller import fill, off, set_brightness, run_animation
 from telemetry_service import get_telemetry
 from ina_sensor import read_data as read_ina, read_all as read_all_ina
 from temperature_sensor import read_temperature
+from aht_sensor import read_data as read_aht, read_all as read_all_aht
 import random
 import time
 
@@ -139,11 +140,30 @@ def api_temperature():
     return jsonify({'temperature': temp} if temp is not None else {})
 
 
+@app.get('/api/aht20')
+def api_aht20():
+    index_param = request.args.get('idx')
+    if request.args.get('all') is not None:
+        return jsonify(read_all_aht())
+    if index_param is not None:
+        try:
+            idx = int(index_param)
+        except ValueError:
+            return jsonify({})
+        data = read_aht(idx)
+    else:
+        data = read_aht()
+    if data is None:
+        return jsonify({'status': 'off'})
+    return jsonify({'status': 'on', **data})
+
+
 @app.get('/api/sensors')
 def api_sensors():
     return jsonify({
         'ina219': read_ina() or {},
         'temperature': read_temperature(),
+        'aht20': read_all_aht(),
     })
 
 if __name__ == '__main__':

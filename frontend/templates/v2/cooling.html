@@ -1,2 +1,40 @@
-{% extends 'v2/coming_soon.html' %}
+{% extends 'v2/layout.html' %}
 {% block title %}Cooling{% endblock %}
+{% block content %}
+<h1 class="mb-4">Cooling</h1>
+<div class="mb-3">
+  <label for="updateInterval" class="form-label">Update interval</label>
+  <select id="updateInterval" class="form-select w-auto d-inline">
+    <option value="500">0.5s</option>
+    <option value="1000" selected>1s</option>
+    <option value="2000">2s</option>
+    <option value="5000">5s</option>
+  </select>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">AHT20 Sensor 1</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Temperature: <span id="aht1_temp">--</span> °C</li>
+        <li class="list-group-item">Humidity: <span id="aht1_hum">--</span> %</li>
+        <li class="list-group-item">Status: <span id="aht1_status">off</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header">AHT20 Sensor 2</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">Temperature: <span id="aht2_temp">--</span> °C</li>
+        <li class="list-group-item">Humidity: <span id="aht2_hum">--</span> %</li>
+        <li class="list-group-item">Status: <span id="aht2_status">off</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='cooling.js') }}"></script>
+{% endblock %}
+
