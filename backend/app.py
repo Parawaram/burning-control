@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
 from telemetry_service import get_telemetry
+from ina_sensor import read_data as read_ina
 import random
 import time
 
@@ -75,6 +76,10 @@ def led7_strip_page():
 def pi_telemetry():
     return render_template('v2/pi-telemetry.html')
 
+@app.route('/voltage')
+def voltage_control_page():
+    return render_template('v2/voltage.html')
+
 @app.post('/api/color')
 def api_color():
     data = request.get_json()
@@ -110,6 +115,12 @@ def api_status():
 @app.get('/api/telemetry')
 def api_telemetry():
     return jsonify(get_telemetry())
+
+
+@app.get('/api/ina219')
+def api_ina219():
+    data = read_ina()
+    return jsonify(data if data is not None else {})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

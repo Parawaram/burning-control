@@ -1,0 +1,14 @@
+{% extends 'v2/layout.html' %}
+{% block title %}Voltage Control{% endblock %}
+{% block content %}
+<h1 class="mb-4">Voltage Control</h1>
+<div class="card mb-3">
+  <div class="card-header">INA Sensor V5+ Line</div>
+  <div class="card-body">
+    Voltage: <span id="inaV5Value">--</span> V
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='voltage.js') }}"></script>
+{% endblock %}
