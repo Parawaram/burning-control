@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
 from telemetry_service import get_telemetry
 from ina_sensor import read_data as read_ina
+from temperature_sensor import read_temperature
 import random
 import time
 
@@ -68,6 +69,10 @@ def ventilation():
 def monitor():
     return render_template('v2/monitor.html')
 
+@app.route('/sensors')
+def sensors():
+    return render_template('v2/sensors.html')
+
 @app.route('/led7-strip')
 def led7_strip_page():
     return render_template('v2/led_7_strip.html')
@@ -121,6 +126,20 @@ def api_telemetry():
 def api_ina219():
     data = read_ina()
     return jsonify(data if data is not None else {})
+
+
+@app.get('/api/temperature')
+def api_temperature():
+    temp = read_temperature()
+    return jsonify({'temperature': temp} if temp is not None else {})
+
+
+@app.get('/api/sensors')
+def api_sensors():
+    return jsonify({
+        'ina219': read_ina() or {},
+        'temperature': read_temperature(),
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
