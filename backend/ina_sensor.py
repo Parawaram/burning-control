@@ -17,7 +17,7 @@ def _init_sensor():
     if board is None or busio is None or INA219 is None:
         return
     try:
-        i2c = busio.I2C(board.D17, board.D27)
+        i2c = busio.I2C(board.SCL, board.SDA)
         _sensor = INA219(i2c)
         log.info("INA219 initialized")
     except Exception as e:  # pragma: no cover - hardware error
