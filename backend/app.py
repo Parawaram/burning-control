@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
 from telemetry_service import get_telemetry
-from ina_sensor import read_data as read_ina
+from ina_sensor import read_data as read_ina, read_all as read_all_ina
 from temperature_sensor import read_temperature
 import random
 import time
@@ -117,8 +117,20 @@ def api_telemetry():
 
 @app.get('/api/ina219')
 def api_ina219():
-    data = read_ina()
-    return jsonify(data if data is not None else {})
+    addr_param = request.args.get('addr')
+    if request.args.get('all') is not None:
+        return jsonify(read_all_ina())
+    if addr_param is not None:
+        try:
+            addr = int(addr_param, 0)
+        except ValueError:
+            return jsonify({})
+        data = read_ina(addr)
+    else:
+        data = read_ina()
+    if data is None:
+        return jsonify({"status": "off"})
+    return jsonify({"status": "on", **data})
 
 
 @app.get('/api/temperature')

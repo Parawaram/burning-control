@@ -2,12 +2,41 @@
 {% block title %}Voltage Control{% endblock %}
 {% block content %}
 <h1 class="mb-4">Voltage Control</h1>
+
 <div class="card mb-3">
   <div class="card-header">INA Sensor V5+ Line</div>
-  <div class="card-body">
-    Voltage: <span id="inaV5Value">--</span> V
-  </div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Bus Voltage: <span id="ina_40_bus">--</span> V</li>
+    <li class="list-group-item">Shunt Voltage: <span id="ina_40_shunt">--</span> V</li>
+    <li class="list-group-item">Current: <span id="ina_40_current">--</span> mA</li>
+    <li class="list-group-item">Power: <span id="ina_40_power">--</span> mW</li>
+    <li class="list-group-item">Status: <span id="ina_40_status">off</span></li>
+  </ul>
 </div>
+
+<div class="card mb-3">
+  <div class="card-header">INA Sensor V3.3+ Line</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Bus Voltage: <span id="ina_41_bus">--</span> V</li>
+    <li class="list-group-item">Shunt Voltage: <span id="ina_41_shunt">--</span> V</li>
+    <li class="list-group-item">Current: <span id="ina_41_current">--</span> mA</li>
+    <li class="list-group-item">Power: <span id="ina_41_power">--</span> mW</li>
+    <li class="list-group-item">Status: <span id="ina_41_status">off</span></li>
+  </ul>
+</div>
+
+{% for addr in ['42','43','44','45'] %}
+<div class="card mb-3">
+  <div class="card-header">INA Sensor 0x{{ addr }}</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Bus Voltage: <span id="ina_{{ addr }}_bus">--</span> V</li>
+    <li class="list-group-item">Shunt Voltage: <span id="ina_{{ addr }}_shunt">--</span> V</li>
+    <li class="list-group-item">Current: <span id="ina_{{ addr }}_current">--</span> mA</li>
+    <li class="list-group-item">Power: <span id="ina_{{ addr }}_power">--</span> mW</li>
+    <li class="list-group-item">Status: <span id="ina_{{ addr }}_status">off</span></li>
+  </ul>
+</div>
+{% endfor %}
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='voltage.js') }}"></script>
