@@ -31,7 +31,7 @@ void setRelay(uint8_t pin, bool state) {
 }
 
 void updateActuators() {
-  if (data.current > 2.0f) {
+  if (data.voltageSensorV24.current > 2.0f) {
     setRelay(PIN_RELAY1, false);
   }
   data.relay1 = digitalRead(PIN_RELAY1);
