@@ -1,0 +1,27 @@
+{% extends 'v2/layout.html' %}
+{% block title %}Teency{% endblock %}
+{% block content %}
+<h1 class="mb-4">Teency Telemetry</h1>
+<div class="mb-3">
+  <label for="updateInterval" class="form-label">Update interval</label>
+  <select id="updateInterval" class="form-select w-auto d-inline">
+    <option value="100">0.1s</option>
+    <option value="500" selected>0.5s</option>
+    <option value="1000">1s</option>
+  </select>
+</div>
+<div class="card mb-3">
+  <div class="card-header">Telemetry Data</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Timestamp: <span id="ts">--</span></li>
+    <li class="list-group-item">Voltage: <span id="voltage">--</span> V</li>
+    <li class="list-group-item">Current: <span id="current">--</span> A</li>
+    <li class="list-group-item">Power: <span id="power">--</span> W</li>
+    <li class="list-group-item">Relays: <span id="relays">--</span></li>
+    <li class="list-group-item">Button: <span id="button">--</span></li>
+  </ul>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='teency.js') }}"></script>
+{% endblock %}

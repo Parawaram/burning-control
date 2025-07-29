@@ -5,6 +5,7 @@ from ina_sensor import read_data as read_ina, read_all as read_all_ina
 from temperature_sensor import read_temperature
 from aht_sensor import read_data as read_aht, read_all as read_all_aht
 from dht_sensor import read_data as read_dht
+from teency_service import start as start_teency, get_data as get_teency_data
 import random
 import time
 
@@ -13,6 +14,9 @@ app = Flask(
     template_folder='../frontend/templates',
     static_folder='../frontend/static'
 )
+
+# start background reader for Teency telemetry
+start_teency()
 
 # Track last generated status to update once per second
 _last_status = {
@@ -70,6 +74,12 @@ def ventilation():
 @app.route('/sensors')
 def sensors():
     return render_template('v2/sensors.html')
+
+
+@app.route('/teency')
+def teency_page():
+    """Display telemetry from the Teency controller."""
+    return render_template('v2/teency.html')
 
 
 @app.route('/pi-telemetry')
@@ -166,6 +176,12 @@ def api_dht11():
     if data is None:
         return jsonify({'status': 'off'})
     return jsonify({'status': 'on', **data})
+
+
+@app.get('/api/teency')
+def api_teency():
+    """Return latest telemetry from the Teency board."""
+    return jsonify(get_teency_data())
 
 
 @app.get('/api/sensors')
