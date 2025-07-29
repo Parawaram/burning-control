@@ -15,7 +15,9 @@ void setup() {
 }
 
 static void printVoltageSensor(const char *name, const VoltageSensorData &s, bool last=false) {
-  Serial.print('"'); Serial.print(name); Serial.print("":{");
+  Serial.print('"');
+  Serial.print(name);
+  Serial.print("\":{");
   Serial.print("\"current\":"); Serial.print(s.isAvailable ? s.current : 0, 3);
   Serial.print(",\"voltage\":"); Serial.print(s.isAvailable ? s.voltage : 0, 3);
   Serial.print(",\"power\":"); Serial.print(s.isAvailable ? s.power : 0, 3);
@@ -25,7 +27,9 @@ static void printVoltageSensor(const char *name, const VoltageSensorData &s, boo
 }
 
 static void printTempSensor(const char *name, const TemperatureSensorData &s, bool last=false) {
-  Serial.print('"'); Serial.print(name); Serial.print("":{");
+  Serial.print('"');
+  Serial.print(name);
+  Serial.print("\":{");
   Serial.print("\"temperature\":"); Serial.print(s.isAvailable ? s.temperature : 0, 1);
   Serial.print(",\"humidity\":"); Serial.print(s.isAvailable ? s.humidity : 0, 1);
   Serial.print(",\"isAvailable\":"); Serial.print(s.isAvailable ? "true" : "false");
