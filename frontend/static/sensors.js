@@ -43,6 +43,15 @@ async function fetchSensors() {
         val ? val.status : 'off';
     }
   }
+
+  if (data.dht11) {
+    const v = data.dht11;
+    document.getElementById('dht_temp').textContent =
+      v.temperature !== undefined ? v.temperature : '--';
+    document.getElementById('dht_hum').textContent =
+      v.humidity !== undefined ? v.humidity : '--';
+    document.getElementById('dht_status').textContent = v.status || 'off';
+  }
 }
 
 fetchSensors();

@@ -33,6 +33,14 @@
     </div>
   </div>
 </div>
+<div class="card mb-3">
+  <div class="card-header">DHT11 Sensor</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Temperature: <span id="dht_temp">--</span> °C</li>
+    <li class="list-group-item">Humidity: <span id="dht_hum">--</span> %</li>
+    <li class="list-group-item">Status: <span id="dht_status">off</span></li>
+  </ul>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='cooling.js') }}"></script>
