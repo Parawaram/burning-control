@@ -56,8 +56,9 @@ void initSensors() {
   sensorV3.begin();
   sensorV5.begin();
   sensorV24.begin();
-  aht1_ok = aht1.begin(0x38);
-  aht2_ok = aht2.begin(0x39);
+  // pass explicit Wire instance and sensor ID to avoid implicit int conversion
+  aht1_ok = aht1.begin(&Wire, -1, 0x38);
+  aht2_ok = aht2.begin(&Wire, -1, 0x39);
 }
 
 void pollSensors() {
