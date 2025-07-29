@@ -2,5 +2,5 @@ Flask==2.3.*
 rpi_ws281x>=4.3.0
 adafruit-circuitpython-neopixel>=6.3.0
 adafruit-circuitpython-ina219>=1.4.11
-adafruit-circuitpython-ahtx0>=2.1.6
+adafruit-circuitpython-ahtx0>=1.0.27
 adafruit-circuitpython-dht>=3.8.0
