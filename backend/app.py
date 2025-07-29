@@ -4,6 +4,7 @@ from telemetry_service import get_telemetry
 from ina_sensor import read_data as read_ina, read_all as read_all_ina
 from temperature_sensor import read_temperature
 from aht_sensor import read_data as read_aht, read_all as read_all_aht
+from dht_sensor import read_data as read_dht
 import random
 import time
 
@@ -158,12 +159,23 @@ def api_aht20():
     return jsonify({'status': 'on', **data})
 
 
+@app.get('/api/dht11')
+def api_dht11():
+    """Return readings from the DHT11 sensor."""
+    data = read_dht()
+    if data is None:
+        return jsonify({'status': 'off'})
+    return jsonify({'status': 'on', **data})
+
+
 @app.get('/api/sensors')
 def api_sensors():
+    dht = read_dht()
     return jsonify({
         'ina219': read_ina() or {},
         'temperature': read_temperature(),
         'aht20': read_all_aht(),
+        'dht11': {'status': 'on', **dht} if dht else {'status': 'off'},
     })
 
 if __name__ == '__main__':
