@@ -1,0 +1,51 @@
+{
+  //This is the model used for communication between Raspbery Pi and Teensy 4.1. 
+  // 0_Main.ino sendJson(); should send this model from Teensy
+  // teency_service.py ; is reading from this model, parses and provides for any other service and page.
+
+  // INA219 x40
+  "voltageSensorV3": {
+    "current": "int",
+    "voltage": "int",
+    "power": "int",
+    "isAvailable": "bool" // true if works, false if sensor is not connected
+  },
+
+  // INA219 x41
+  "voltageSensorV5": {
+    "current": "int",
+    "voltage": "int",
+    "power": "int",
+    "isAvailable": "bool" // true if works, false if sensor is not connected
+  },
+
+  // INA219 x44
+  "voltageSensorV5PiBrain": {
+    "current": "int",
+    "voltage": "int",
+    "power": "int",
+    "isAvailable": "bool" // true if works, false if sensor is not connected
+  },
+
+  // INA219 x45
+  "voltageSensorV24": {
+    "current": "int",
+    "voltage": "int",
+    "power": "int",
+    "isAvailable": "bool" // true if works, false if sensor is not connected
+  },
+
+  //AHT20
+  "temperatureSensor1": {
+    "temperature": "int",
+    "humidity": "int",
+    "isAvailable": "bool"
+  },
+
+  //Not connected yet
+  "temperatureSensor2": {
+    "temperature": "int",
+    "humidity": "int",
+    "isAvailable": "bool"
+  }
+}
