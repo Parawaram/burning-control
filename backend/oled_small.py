@@ -14,9 +14,26 @@ except Exception as e:  # pragma: no cover - hardware optional
 
 from telemetry_service import get_telemetry
 from teency_service import (
-    start as start_teency,
+    DEFAULT_DATA,
     get_data as get_teency_data,
 )
+try:
+    import requests  # type: ignore
+except Exception:
+    requests = None
+
+
+def fetch_teency() -> dict:
+    """Get telemetry from the Flask API if available."""
+    if requests is None:
+        return get_teency_data()
+    try:
+        resp = requests.get("http://localhost:5000/api/teency", timeout=0.5)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    return DEFAULT_DATA.copy()
 
 
 log = logging.getLogger(__name__)
@@ -129,7 +146,7 @@ class OLEDApp:
     def render_home(self):
         data = get_telemetry()
         cpu = data.get('cpu_usage')
-        teency = get_teency_data()
+        teency = fetch_teency()
         vs_pibrain = teency.get('voltageSensorV5PiBrain', {})
         volt_5 = vs_pibrain.get('voltage', 0.0)
         amp_5 = vs_pibrain.get('current', 0.0)
@@ -181,8 +198,6 @@ class OLEDApp:
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    # ensure telemetry from Teensy is read in this process
-    start_teency()
     app = OLEDApp()
     app.run()
 

@@ -5,3 +5,4 @@ adafruit-circuitpython-ahtx0>=1.0.27
 adafruit-circuitpython-dht>=3.8.0
 
 pyserial>=3.5
+requests>=2.31
