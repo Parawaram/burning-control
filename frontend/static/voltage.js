@@ -5,6 +5,19 @@ const sensors = {
   voltageSensorV24: 'vs_v24_',
 };
 
+let interval = 500;
+let timerId = null;
+
+function startTimer() {
+  if (timerId) clearInterval(timerId);
+  timerId = setInterval(fetchVoltages, interval);
+}
+
+document.getElementById('updateInterval')?.addEventListener('change', (e) => {
+  interval = parseInt(e.target.value);
+  startTimer();
+});
+
 async function fetchVoltages() {
   const resp = await fetch('/api/teency');
   const data = await resp.json();
@@ -23,4 +36,4 @@ async function fetchVoltages() {
 }
 
 fetchVoltages();
-setInterval(fetchVoltages, 250);
+startTimer();
