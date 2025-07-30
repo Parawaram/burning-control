@@ -5,6 +5,11 @@ Adafruit_INA219 sensorV5(0x41);       // 5V
 Adafruit_INA219 sensorV5PiBrain(0x44); // 5V Pi Brain
 Adafruit_INA219 sensorV24(0x45);      // 24V
 
+static bool v3_ok = false;
+static bool v5_ok = false;
+static bool v5pb_ok = false;
+static bool v24_ok = false;
+
 Adafruit_AHTX0 aht1; // address 0x38
 Adafruit_AHTX0 aht2; // address 0x39
 
@@ -12,7 +17,14 @@ static bool aht1_ok = false;
 static bool aht2_ok = false;
 
 
-static void readIna(Adafruit_INA219 &sensor, VoltageSensorData &out) {
+static void readIna(Adafruit_INA219 &sensor, bool okFlag, VoltageSensorData &out) {
+  if (!okFlag) {
+    out.current = 0.0f;
+    out.voltage = 0.0f;
+    out.power = 0.0f;
+    out.isAvailable = false;
+    return;
+  }
   float v = sensor.getBusVoltage_V();
   float i = sensor.getCurrent_mA() / 1000.0f;
   bool ok = !isnan(v) && !isinf(v) && !isnan(i) && !isinf(i);
@@ -52,10 +64,10 @@ static void readAHT(Adafruit_AHTX0 &sensor, bool okFlag, TemperatureSensorData &
 }
 
 void initSensors() {
-  sensorV3.begin();
-  sensorV5.begin();
-  sensorV5PiBrain.begin();
-  sensorV24.begin();
+  v3_ok = sensorV3.begin();
+  v5_ok = sensorV5.begin();
+  v5pb_ok = sensorV5PiBrain.begin();
+  v24_ok = sensorV24.begin();
   // pass explicit Wire instance and sensor ID to avoid implicit int conversion
   aht1_ok = aht1.begin(&Wire, -1, 0x38);
   aht2_ok = aht2.begin(&Wire, -1, 0x39);
@@ -63,10 +75,10 @@ void initSensors() {
 
 void pollSensors() {
   data.ts = millis();
-  readIna(sensorV3, data.voltageSensorV3);
-  readIna(sensorV5, data.voltageSensorV5);
-  readIna(sensorV5PiBrain, data.voltageSensorV5PiBrain);
-  readIna(sensorV24, data.voltageSensorV24);
+  readIna(sensorV3, v3_ok, data.voltageSensorV3);
+  readIna(sensorV5, v5_ok, data.voltageSensorV5);
+  readIna(sensorV5PiBrain, v5pb_ok, data.voltageSensorV5PiBrain);
+  readIna(sensorV24, v24_ok, data.voltageSensorV24);
   readAHT(aht1, aht1_ok, data.temperatureSensor1);
   readAHT(aht2, aht2_ok, data.temperatureSensor2);
   data.button = buttonPressed();
