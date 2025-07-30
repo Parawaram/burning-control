@@ -13,7 +13,10 @@ except Exception as e:  # pragma: no cover - hardware optional
     logging.error("Required hardware libraries not available: %s", e)
 
 from telemetry_service import get_telemetry
-from teency_service import get_data as get_teency_data
+from teency_service import (
+    start as start_teency,
+    get_data as get_teency_data,
+)
 
 
 log = logging.getLogger(__name__)
@@ -178,6 +181,8 @@ class OLEDApp:
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    # ensure telemetry from Teensy is read in this process
+    start_teency()
     app = OLEDApp()
     app.run()
 
