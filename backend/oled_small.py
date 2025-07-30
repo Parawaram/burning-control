@@ -14,6 +14,7 @@ except Exception as e:  # pragma: no cover - hardware optional
     logging.error("Required hardware libraries not available: %s", e)
 
 from telemetry_service import get_telemetry
+from teency_service import get_data as get_teency_data
 
 
 log = logging.getLogger(__name__)
@@ -126,7 +127,9 @@ class OLEDApp:
     def render_home(self):
         data = get_telemetry()
         cpu = data.get('cpu_usage')
-        volt = data.get('cpu_temp') or 0.0
+        teency = get_teency_data()
+        vs = teency.get('voltageSensorV5PiBrain', {})
+        volt = vs.get('voltage', 0.0)
         batt = random.randint(40, 100)
         temp = random.uniform(25.0, 35.0)
         status = "OK"
@@ -136,7 +139,7 @@ class OLEDApp:
             status = "ERR"
         self._clear()
         self.draw.text((0, 0), f"CPU:{cpu or 0:>4}%", font=self.font, fill=255)
-        self.draw.text((0, 10), f"V:{volt:4.1f}C", font=self.font, fill=255)
+        self.draw.text((0, 10), f"V:{volt:4.1f}V", font=self.font, fill=255)
         self.draw.text((0, 20), f"B:{batt:3}%", font=self.font, fill=255)
         self.draw.text((0, 30), f"T:{temp:4.1f}C", font=self.font, fill=255)
         self.draw.text((50, 0), status, font=self.font, fill=255)

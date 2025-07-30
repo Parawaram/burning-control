@@ -10,17 +10,13 @@
     <option value="1000">1s</option>
   </select>
 </div>
-<div class="card mb-3">
-  <div class="card-header">Telemetry Data</div>
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item">Timestamp: <span id="ts">--</span></li>
-    <li class="list-group-item">Voltage: <span id="voltage">--</span> V</li>
-    <li class="list-group-item">Current: <span id="current">--</span> A</li>
-    <li class="list-group-item">Power: <span id="power">--</span> W</li>
-    <li class="list-group-item">Relays: <span id="relays">--</span></li>
-    <li class="list-group-item">Button: <span id="button">--</span></li>
-  </ul>
+<div class="alert alert-danger d-none" id="teencyError" role="alert">
+  Teency connection lost!
 </div>
+<div class="mb-2">
+  Status: <span id="status" class="badge bg-secondary">--</span>
+</div>
+<pre id="teencyJson" class="bg-light p-2"></pre>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='teency.js') }}"></script>

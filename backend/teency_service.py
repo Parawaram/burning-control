@@ -12,7 +12,27 @@ except Exception as e:  # pragma: no cover - optional in tests
 
 log = logging.getLogger(__name__)
 
-_data: Dict[str, Any] = {}
+# Default data used when the Teensy board is not available or fails to
+# provide telemetry. All sensors are marked as unavailable and values are
+# reset to ``0`` and ``status`` set to ``error`` so that the UI can show
+# an "off" state.
+DEFAULT_VOLTAGE = {"current": 0.0, "voltage": 0.0, "power": 0.0, "isAvailable": False}
+DEFAULT_TEMP = {"temperature": 0.0, "humidity": 0.0, "isAvailable": False}
+DEFAULT_DATA: Dict[str, Any] = {
+    "ts": 0,
+    "voltageSensorV3": DEFAULT_VOLTAGE.copy(),
+    "voltageSensorV5": DEFAULT_VOLTAGE.copy(),
+    "voltageSensorV5PiBrain": DEFAULT_VOLTAGE.copy(),
+    "voltageSensorV24": DEFAULT_VOLTAGE.copy(),
+    "temperatureSensor1": DEFAULT_TEMP.copy(),
+    "temperatureSensor2": DEFAULT_TEMP.copy(),
+    "relay1": False,
+    "relay2": False,
+    "button": False,
+    "status": "error",
+}
+
+_data: Dict[str, Any] = DEFAULT_DATA.copy()
 _serial = None
 _thread_started = False
 
@@ -36,10 +56,12 @@ def _reader():  # pragma: no cover - hardware optional
     global _data, _serial
     while True:
         if serial is None:
+            _data = DEFAULT_DATA.copy()
             time.sleep(1)
             continue
         if _serial is None:
             _open_serial()
+            _data = DEFAULT_DATA.copy()
             time.sleep(1)
             continue
         try:
@@ -48,8 +70,10 @@ def _reader():  # pragma: no cover - hardware optional
                 continue
 
             _data = json.loads(line)
+            _data.setdefault("status", "ok")
         except Exception as e:
             log.warning("Teency read failed: %s", e)
+            _data = DEFAULT_DATA.copy()
             try:
                 _serial.close()
             except Exception:
@@ -68,4 +92,5 @@ def start():
 
 
 def get_data() -> Dict[str, Any]:
-    return _data
+    return _data or DEFAULT_DATA.copy()
+

@@ -12,22 +12,19 @@ document.getElementById('updateInterval')?.addEventListener('change', (e) => {
 });
 
 async function fetchTeency() {
-  const resp = await fetch('/api/teency');
-  const data = await resp.json();
-  if (data.ts !== undefined) {
-    document.getElementById('ts').textContent = data.ts;
-  }
-  if (data.voltageSensorV3 !== undefined) {
-    document.getElementById('voltage').textContent = data.voltageSensorV3.voltage;
-    document.getElementById('current').textContent = data.voltageSensorV3.current;
-    document.getElementById('power').textContent = data.voltageSensorV3.power;
-  }
-  if (data.relay1 !== undefined && data.relay2 !== undefined) {
-    document.getElementById('relays').textContent =
-      `${data.relay1}, ${data.relay2}`;
-  }
-  if (data.button !== undefined) {
-    document.getElementById('button').textContent = data.button;
+  try {
+    const resp = await fetch('/api/teency');
+    const data = await resp.json();
+    document.getElementById('teencyJson').textContent =
+      JSON.stringify(data, null, 2);
+    const status = data.status || 'error';
+    document.getElementById('status').textContent = status;
+    const errorBox = document.getElementById('teencyError');
+    if (status !== 'ok') errorBox.classList.remove('d-none');
+    else errorBox.classList.add('d-none');
+  } catch (e) {
+    document.getElementById('status').textContent = 'error';
+    document.getElementById('teencyError').classList.remove('d-none');
   }
 }
 
