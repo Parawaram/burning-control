@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include <Wire.h>
+#include <Adafruit_INA219.h>
+#include <Adafruit_AHTX0.h>
 
 Telemetry data;
 

@@ -1,6 +1,4 @@
 #include "Globals.h"
-#include <Adafruit_INA219.h>
-#include <Adafruit_AHTX0.h>
 
 Adafruit_INA219 sensorV3(0x40);  // 3.3V
 Adafruit_INA219 sensorV5(0x41);  // 5V
