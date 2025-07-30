@@ -35,7 +35,6 @@ def fetch_teency() -> dict:
         pass
     return DEFAULT_DATA.copy()
 
-
 log = logging.getLogger(__name__)
 
 
@@ -198,6 +197,8 @@ class OLEDApp:
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    # ensure telemetry from Teensy is read in this process
+    start_teency()
     app = OLEDApp()
     app.run()
 
