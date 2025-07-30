@@ -14,11 +14,12 @@ document.getElementById('updateInterval')?.addEventListener('change', (e) => {
 async function fetchTeency() {
   const resp = await fetch('/api/teency');
   const data = await resp.json();
-  if (data.ts !== undefined) {
-    document.getElementById('ts').textContent = data.ts;
+  if (data.voltageSensorV3 !== undefined) {
+    console.log(data)
+    document.getElementById('ts').textContent = data.voltageSensorV3.current;
   }
-  if (data.U !== undefined) {
-    document.getElementById('voltage').textContent = data.U;
+  if (data.voltageSensorV3 !== undefined) {
+    document.getElementById('voltage').textContent = data.voltageSensorV3.voltage;
   }
   if (data.I !== undefined) {
     document.getElementById('current').textContent = data.I;

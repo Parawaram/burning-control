@@ -46,6 +46,7 @@ def _reader():  # pragma: no cover - hardware optional
             line = _serial.readline().decode("utf-8", errors="ignore").strip()
             if not line:
                 continue
+
             _data = json.loads(line)
         except Exception as e:
             log.warning("Teency read failed: %s", e)
