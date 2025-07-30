@@ -1,25 +1,26 @@
-const addresses = [0x40, 0x41, 0x42, 0x43, 0x44, 0x45];
+const sensors = {
+  voltageSensorV3: 'vs_v3_',
+  voltageSensorV5: 'vs_v5_',
+  voltageSensorV5PiBrain: 'vs_v5pi_',
+  voltageSensorV24: 'vs_v24_',
+};
 
-async function fetchIna() {
-  const resp = await fetch('/api/ina219?all=1');
-  const all = await resp.json();
+async function fetchVoltages() {
+  const resp = await fetch('/api/teency');
+  const data = await resp.json();
 
-  for (const addr of addresses) {
-    const hex = '0x' + addr.toString(16).toUpperCase();
-    const data = all[hex] || { status: 'off' };
-    const prefix = 'ina_' + hex.slice(2) + '_';
-
-    document.getElementById(prefix + 'bus').textContent =
-      data.bus_voltage !== undefined ? data.bus_voltage : '--';
-    document.getElementById(prefix + 'shunt').textContent =
-      data.shunt_voltage !== undefined ? data.shunt_voltage : '--';
+  for (const [key, prefix] of Object.entries(sensors)) {
+    const s = data[key] || {};
+    document.getElementById(prefix + 'voltage').textContent =
+      s.voltage !== undefined ? s.voltage : '--';
     document.getElementById(prefix + 'current').textContent =
-      data.current !== undefined ? data.current : '--';
+      s.current !== undefined ? s.current : '--';
     document.getElementById(prefix + 'power').textContent =
-      data.power !== undefined ? data.power : '--';
-    document.getElementById(prefix + 'status').textContent = data.status || 'off';
+      s.power !== undefined ? s.power : '--';
+    document.getElementById(prefix + 'status').textContent =
+      s.isAvailable !== undefined ? (s.isAvailable ? 'on' : 'off') : 'off';
   }
 }
 
-fetchIna();
-setInterval(fetchIna, 250);
+fetchVoltages();
+setInterval(fetchVoltages, 250);

@@ -19,18 +19,6 @@ async function fetchSensors() {
     document.getElementById('temperature').textContent = data.temperature;
   }
 
-  if (data.ina219) {
-    const v = data.ina219;
-    document.getElementById('bus_voltage').textContent =
-      v.bus_voltage !== undefined ? v.bus_voltage : '--';
-    document.getElementById('shunt_voltage').textContent =
-      v.shunt_voltage !== undefined ? v.shunt_voltage : '--';
-    document.getElementById('current').textContent =
-      v.current !== undefined ? v.current : '--';
-    document.getElementById('power').textContent =
-      v.power !== undefined ? v.power : '--';
-    document.getElementById('ina_status').textContent = v.status || 'off';
-  }
 
   if (data.aht20) {
     for (let i = 1; i <= 2; i++) {
