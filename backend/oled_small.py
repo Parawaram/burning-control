@@ -1,5 +1,4 @@
 import time
-import random
 import logging
 
 try:
@@ -128,20 +127,20 @@ class OLEDApp:
         data = get_telemetry()
         cpu = data.get('cpu_usage')
         teency = get_teency_data()
-        vs = teency.get('voltageSensorV5PiBrain', {})
-        volt = vs.get('voltage', 0.0)
-        batt = random.randint(40, 100)
-        temp = random.uniform(25.0, 35.0)
+        vs_pibrain = teency.get('voltageSensorV5PiBrain', {})
+        volt_5 = vs_pibrain.get('voltage', 0.0)
+        amp_5 = vs_pibrain.get('current', 0.0)
+        vs_3 = teency.get('voltageSensorV3', {})
+        volt_3 = vs_3.get('voltage', 0.0)
+
         status = "OK"
-        if batt < 20:
-            status = "!"  # warning
         if cpu and cpu > 90:
             status = "ERR"
         self._clear()
         self.draw.text((0, 0), f"CPU:{cpu or 0:>4}%", font=self.font, fill=255)
-        self.draw.text((0, 10), f"V:{volt:4.1f}V", font=self.font, fill=255)
-        self.draw.text((0, 20), f"B:{batt:3}%", font=self.font, fill=255)
-        self.draw.text((0, 30), f"T:{temp:4.1f}C", font=self.font, fill=255)
+        self.draw.text((0, 10), f"V:{volt_5:4.1f}V", font=self.font, fill=255)
+        self.draw.text((0, 20), f"B:{amp_5:4.1f}A", font=self.font, fill=255)
+        self.draw.text((0, 30), f"V3:{volt_3:4.1f}V", font=self.font, fill=255)
         self.draw.text((50, 0), status, font=self.font, fill=255)
         self._update()
 
