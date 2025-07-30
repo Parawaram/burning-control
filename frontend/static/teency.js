@@ -14,24 +14,20 @@ document.getElementById('updateInterval')?.addEventListener('change', (e) => {
 async function fetchTeency() {
   const resp = await fetch('/api/teency');
   const data = await resp.json();
-  if (data.voltageSensorV3 !== undefined) {
-    console.log(data)
-    document.getElementById('ts').textContent = data.voltageSensorV3.current;
+  if (data.ts !== undefined) {
+    document.getElementById('ts').textContent = data.ts;
   }
   if (data.voltageSensorV3 !== undefined) {
     document.getElementById('voltage').textContent = data.voltageSensorV3.voltage;
+    document.getElementById('current').textContent = data.voltageSensorV3.current;
+    document.getElementById('power').textContent = data.voltageSensorV3.power;
   }
-  if (data.I !== undefined) {
-    document.getElementById('current').textContent = data.I;
+  if (data.relay1 !== undefined && data.relay2 !== undefined) {
+    document.getElementById('relays').textContent =
+      `${data.relay1}, ${data.relay2}`;
   }
-  if (data.P !== undefined) {
-    document.getElementById('power').textContent = data.P;
-  }
-  if (Array.isArray(data.R)) {
-    document.getElementById('relays').textContent = data.R.join(', ');
-  }
-  if (data.B !== undefined) {
-    document.getElementById('button').textContent = data.B;
+  if (data.button !== undefined) {
+    document.getElementById('button').textContent = data.button;
   }
 }
 

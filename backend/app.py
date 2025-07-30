@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from neopixel_controller import fill, off, set_brightness, run_animation
 from telemetry_service import get_telemetry
-from ina_sensor import read_data as read_ina, read_all as read_all_ina
 from temperature_sensor import read_temperature
 from aht_sensor import read_data as read_aht, read_all as read_all_aht
 from dht_sensor import read_data as read_dht
@@ -127,24 +126,6 @@ def api_telemetry():
     return jsonify(get_telemetry())
 
 
-@app.get('/api/ina219')
-def api_ina219():
-    addr_param = request.args.get('addr')
-    if request.args.get('all') is not None:
-        return jsonify(read_all_ina())
-    if addr_param is not None:
-        try:
-            addr = int(addr_param, 0)
-        except ValueError:
-            return jsonify({})
-        data = read_ina(addr)
-    else:
-        data = read_ina()
-    if data is None:
-        return jsonify({"status": "off"})
-    return jsonify({"status": "on", **data})
-
-
 @app.get('/api/temperature')
 def api_temperature():
     temp = read_temperature()
@@ -188,7 +169,7 @@ def api_teency():
 def api_sensors():
     dht = read_dht()
     return jsonify({
-        'ina219': read_ina() or {},
+        'teency': get_teency_data(),
         'temperature': read_temperature(),
         'aht20': read_all_aht(),
         'dht11': {'status': 'on', **dht} if dht else {'status': 'off'},
