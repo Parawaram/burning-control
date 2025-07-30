@@ -22,6 +22,7 @@ struct Telemetry {
   uint32_t ts;        // millis()
   VoltageSensorData voltageSensorV3;
   VoltageSensorData voltageSensorV5;
+  VoltageSensorData voltageSensorV5PiBrain;
   VoltageSensorData voltageSensorV24;
   TemperatureSensorData temperatureSensor1;
   TemperatureSensorData temperatureSensor2;
