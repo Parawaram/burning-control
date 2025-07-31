@@ -1,63 +1,59 @@
-import time
-import logging
-import queue
+﻿import time, logging, queue, threading
 
 try:
-    import board
-    import busio
+    import board, busio
     from PIL import Image, ImageDraw, ImageFont
-    import adafruit_ssd1306
-except Exception as e:  # pragma: no cover - hardware optional
+    import adafruit_ssd1306          # type: ignore
+except Exception as e:               # аппаратные либы могут отсутствовать
     board = busio = None
     Image = ImageDraw = ImageFont = adafruit_ssd1306 = None
-    logging.error("Required hardware libraries not available: %s", e)
+    logging.error("HW libs not available: %s", e)
 
-from .telemetry_service import get_telemetry
-from .teency_service import (
-    DEFAULT_DATA,
-    get_data as get_teency_data,
-)
+# ----------------------------------------------------------------------
+#  Глобальный кеш последней телеметрии из Teensy -----------------------
+_teency_data: dict = {}              # обновляется listener'ом
+
+# ----------------------------------------------------------------------
+#  Вспомогательные функции ---------------------------------------------
 try:
-    import requests  # type: ignore
+    import requests                  # для «резервного» запроса во Flask
 except Exception:
     requests = None
 
-
 def fetch_teency() -> dict:
-    """Get telemetry from the Flask API if available."""
+    """Возвращает кеш из _teency_data, а если он пуст — пытается /api/teency."""
+    if _teency_data:
+        return _teency_data
     if requests is None:
-        return get_teency_data()
+        return {}
     try:
-        resp = requests.get("http://localhost:5000/api/teency", timeout=0.5)
-        if resp.status_code == 200:
-            return resp.json()
+        r = requests.get("http://localhost:8000/api/teency", timeout=0.5)
+        if r.ok:
+            return r.json()
     except Exception:
         pass
-    return DEFAULT_DATA.copy()
+    return {}
 
+# ----------------------------------------------------------------------
 log = logging.getLogger(__name__)
-
 
 class Page:
     def __init__(self, name, renderer):
         self.name = name
         self.render = renderer
 
-
 class OLEDApp:
-    WIDTH = 64
+    WIDTH  = 64
     HEIGHT = 48
 
+    # ----- инициализация экрана ---------------------------------------
     def __init__(self, addr=0x3C):
         self.addr = addr
         self._setup_display()
-        self.pages = []
-        self.page_index = 0
-        self.last_update = 0
+        self.pages, self.page_index, self.last_update = [], 0, 0
 
     def _setup_display(self):
-        """Initialize the OLED display if hardware is available."""
-        if board is None:
+        if board is None:            # тест/CI без железа
             self.display = None
             return
         try:
@@ -66,137 +62,81 @@ class OLEDApp:
                 self.WIDTH, self.HEIGHT, i2c, addr=self.addr
             )
             self.image = Image.new("1", (self.display.width, self.display.height))
-            self.draw = ImageDraw.Draw(self.image)
-            self.font = ImageFont.load_default()
-            log.info("OLED display initialized")
-        except Exception as e:  # pragma: no cover - hardware error
+            self.draw  = ImageDraw.Draw(self.image)
+            self.font  = ImageFont.load_default()
+            log.info("OLED OK at 0x%X", self.addr)
+        except Exception as e:
             log.warning("OLED init failed: %s", e)
             self.display = None
 
-    def _ensure_display(self):
-        """Try to reinitialize the display if it became unavailable."""
-        if self.display is None:
-            self._setup_display()
-
-
-    # --- Display helpers -------------------------------------------------
+    # ----- утилиты рисования -----------------------------------------
     def _clear(self):
-        if not self.display:
-            return
-        self.draw.rectangle((0, 0, self.WIDTH, self.HEIGHT), outline=0, fill=0)
+        if self.display:
+            self.draw.rectangle((0, 0, self.WIDTH, self.HEIGHT), fill=0)
 
     def _update(self):
-        self._ensure_display()
         if not self.display:
             return
         try:
-            self.display.image(self.image)
-            self.display.show()
-        except OSError as e:  # pragma: no cover - hardware error
-            log.warning("OLED update failed: %s", e)
-            self.display = None
+            self.display.image(self.image);  self.display.show()
+        except OSError as e:
+            log.warning("OLED I/O error: %s", e);  self.display = None
 
-    # --- Pages -----------------------------------------------------------
-    def add_page(self, page: Page):
-        self.pages.append(page)
+    # ----- страницы ---------------------------------------------------
+    def add_page(self, pg: Page):  self.pages.append(pg)
+    def next_page(self):           self.page_index = (self.page_index+1) % len(self.pages)
+    def prev_page(self):           self.page_index = (self.page_index-1) % len(self.pages)
 
-    def next_page(self):
-        if self.pages:
-            self.page_index = (self.page_index + 1) % len(self.pages)
-
-    def prev_page(self):
-        if self.pages:
-            self.page_index = (self.page_index - 1) % len(self.pages)
-
-    # --- Rendering -------------------------------------------------------
-    def show_logo(self, duration=3.0):
-        if not self.display:
-            time.sleep(duration)
-            return
-        steps = 20
-        start = time.time()
-        for i in range(steps + 1):
-            self._clear()
-            self.draw.text((5, 5), "BurningMan", font=self.font, fill=255)
-            self.draw.text((5, 15), "MK-1", font=self.font, fill=255)
-            bar_width = int((self.WIDTH - 10) * i / steps)
-            self.draw.rectangle((5, 35, 5 + bar_width, 40), outline=255, fill=255)
-            self._update()
-            time.sleep(duration / steps)
-        # wait remainder if any
-        remaining = duration - (time.time() - start)
-        if remaining > 0:
-            time.sleep(remaining)
-
+    # -- пример отрисовки одной страницы ------------------------------
     def render_home(self):
-        data = get_telemetry()
-        cpu = data.get('cpu_usage')
         teency = fetch_teency()
-        vs_pibrain = teency.get('voltageSensorV5PiBrain', {})
-        volt_5 = vs_pibrain.get('voltage', 0.0)
-        amp_5 = vs_pibrain.get('current', 0.0)
-        vs_3 = teency.get('voltageSensorV3', {})
-        volt_3 = vs_3.get('voltage', 0.0)
+        v5  = teency.get("voltageSensorV5PiBrain", {})
+        v3  = teency.get("voltageSensorV3",       {})
+        cpu = teency.get("cpu", 0)               # пример
 
-        status = "OK"
-        if cpu and cpu > 90:
-            status = "ERR"
         self._clear()
-        self.draw.text((0, 0), f"CPU:{cpu or 0:>4}%", font=self.font, fill=255)
-        self.draw.text((0, 10), f"V:{volt_5:4.1f}V", font=self.font, fill=255)
-        self.draw.text((0, 20), f"B:{amp_5:4.1f}A", font=self.font, fill=255)
-        self.draw.text((0, 30), f"V3:{volt_3:4.1f}V", font=self.font, fill=255)
-        self.draw.text((50, 0), status, font=self.font, fill=255)
+        self.draw.text((0,  0), f"CPU:{cpu:>3}%", font=self.font, fill=255)
+        self.draw.text((0, 10), f"5V :{v5.get('voltage',0):4.1f}", font=self.font, fill=255)
+        self.draw.text((0, 20), f"3V :{v3.get('voltage',0):4.1f}", font=self.font, fill=255)
         self._update()
 
+    # ----- основной цикл экрана --------------------------------------
     def run(self):
-        self.show_logo()
-        # default pages
         if not self.pages:
             self.add_page(Page("home", self.render_home))
         try:
             while True:
                 now = time.time()
                 if now - self.last_update >= 0.5:
-                    current = self.pages[self.page_index]
-                    current.render()
+                    self.pages[self.page_index].render()
                     self.last_update = now
                 time.sleep(0.05)
         except KeyboardInterrupt:
             pass
-        finally:
-            self.shutdown()
 
-    def shutdown(self):
-        if not self.display:
-            return
-        try:
-            self.display.fill(0)
-            self.display.show()
-        except Exception:
-            pass
-
-
-def main():
+# ----------------------------------------------------------------------
+#  Entry-points --------------------------------------------------------
+def main():                          # standalone тест
     logging.basicConfig(level=logging.INFO)
-    # standalone preview mode
-    app = OLEDApp()
-    app.run()
-
+    OLEDApp().run()
 
 def run(q):
-    from multiprocessing import Event
-    import queue as qmod, time
-    while True:
-        try:
-            pkt = q.get(timeout=1)
-            if pkt.get("type")=="telemetry":
-                # call existing draw() with pkt
-                draw(pkt)          # replace with real function
-        except qmod.Empty:
-            time.sleep(0.05)
+    """Ворк-функция, вызываемая из main.py."""
+    logging.basicConfig(level=logging.INFO)
+    # поток-слушатель очереди
+    def listener():
+        global _teency_data
+        while True:
+            try:
+                pkt = q.get(timeout=1)
+                if pkt.get("type") == "telemetry":
+                    _teency_data = pkt          # кешируем последнюю
+            except queue.Empty:
+                continue
 
+    threading.Thread(target=listener, daemon=True).start()
+    OLEDApp().run()                 # блокирующий цикл отрисовки
 
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
     main()
-
