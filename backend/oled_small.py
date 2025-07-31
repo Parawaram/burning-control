@@ -185,58 +185,18 @@ def main():
 
 
 def run(q):
-    """Run OLED display worker using packets from a queue."""
-    logging.basicConfig(level=logging.INFO)
-    app = OLEDApp()
-    last_pkt = {}
-
-    def render_from_pkt():
-        data = get_telemetry()
-        cpu = data.get('cpu_usage')
-        teency = last_pkt or fetch_teency()
-        vs_pibrain = teency.get('voltageSensorV5PiBrain', {})
-        volt_5 = vs_pibrain.get('voltage', 0.0)
-        amp_5 = vs_pibrain.get('current', 0.0)
-        vs_3 = teency.get('voltageSensorV3', {})
-        volt_3 = vs_3.get('voltage', 0.0)
-
-        status = "OK"
-        if cpu and cpu > 90:
-            status = "ERR"
-        app._clear()
-        app.draw.text((0, 0), f"CPU:{cpu or 0:>4}%", font=app.font, fill=255)
-        app.draw.text((0, 10), f"V:{volt_5:4.1f}V", font=app.font, fill=255)
-        app.draw.text((0, 20), f"B:{amp_5:4.1f}A", font=app.font, fill=255)
-        app.draw.text((0, 30), f"V3:{volt_3:4.1f}V", font=app.font, fill=255)
-        app.draw.text((50, 0), status, font=app.font, fill=255)
-        app._update()
-
-    if not app.pages:
-        app.add_page(Page("home", render_from_pkt))
-    app.show_logo()
-    try:
-        while True:
-            try:
-                pkt = q.get(timeout=0.2)
-                if isinstance(pkt, dict):
-                    if pkt.get("type") == "telemetry":
-                        last_pkt = pkt
-                    elif pkt.get("type") == "cmd" and pkt.get("cmd") == "page":
-                        idx = pkt.get("idx")
-                        if isinstance(idx, int) and app.pages:
-                            app.page_index = idx % len(app.pages)
-            except queue.Empty:
-                pass
-            now = time.time()
-            if now - app.last_update >= 0.5:
-                app.pages[app.page_index].render()
-                app.last_update = now
+    from multiprocessing import Event
+    import queue as qmod, time
+    while True:
+        try:
+            pkt = q.get(timeout=1)
+            if pkt.get("type")=="telemetry":
+                # call existing draw() with pkt
+                draw(pkt)          # replace with real function
+        except qmod.Empty:
             time.sleep(0.05)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        app.shutdown()
 
 
 if __name__ == "__main__":
     main()
+

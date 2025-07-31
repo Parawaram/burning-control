@@ -1,50 +1,36 @@
-import importlib
-import logging
+import importlib, logging, time
 from multiprocessing import Process, Queue
-import time
 
 workers = {
-    "reader": "backend.app",
-    "oled_small": "backend.oled_small",
-    "logger": "backend.logger",
-    "web": "backend.webapp",
+    # single UART reader
+    "reader":      "backend.teensy_reader",
+    # existing consumers
+    "oled_small":  "backend.oled_small",
+    "logger":      "backend.logger",
+    # flask web api
+    "flask":       "backend.app",
 }
 
-
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
     q = Queue(maxsize=200)
-    processes = []
-    for name, mod_path in workers.items():
-        try:
-            mod = importlib.import_module(mod_path)
-        except Exception as e:
-            logging.error("Failed to import %s: %s", mod_path, e)
-            continue
-        p = Process(target=mod.run, args=(q,), name=name)
-        p.start()
-        processes.append(p)
+    procs = []
+    for name, mp in workers.items():
+        mod = importlib.import_module(mp)
+        p   = Process(target=mod.run, args=(q,), name=name, daemon=True)
+        p.start();  procs.append(p)
 
-    try:
-        while processes:
-            time.sleep(0.2)
-            for p in processes[:]:
+    try:                       # supervisor loop
+        while True:
+            time.sleep(0.3)
+            for p in procs[:]:
                 if not p.is_alive():
-                    if p.exitcode != 0:
-                        logging.error("%s exited with code %s", p.name, p.exitcode)
-                        raise RuntimeError
-                    processes.remove(p)
-    except KeyboardInterrupt:
-        logging.info("Interrupted, shutting down...")
-    except RuntimeError:
-        logging.info("Stopping remaining workers...")
-    finally:
-        for p in processes:
-            if p.is_alive():
-                p.terminate()
-        for p in processes:
-            p.join()
-
+                    logging.error("%s died (%s)", p.name, p.exitcode)
+                    raise RuntimeError
+    except (KeyboardInterrupt, RuntimeError):
+        logging.info("shutting down …")
+        for p in procs: p.terminate()
+        for p in procs: p.join()
 
 if __name__ == "__main__":
     main()
