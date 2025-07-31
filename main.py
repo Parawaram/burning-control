@@ -7,6 +7,7 @@ workers = {
     "reader": "backend.app",
     "oled_small": "backend.oled_small",
     "logger": "backend.logger",
+    "web": "backend.webapp",
 }
 
 

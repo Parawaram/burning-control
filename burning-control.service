@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /path/to/burning-control/startup.py
+ExecStart=/usr/bin/python3 /path/to/burning-control/main.py
 WorkingDirectory=/path/to/burning-control
 Restart=always
 

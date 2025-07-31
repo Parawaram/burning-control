@@ -12,7 +12,7 @@ pip install -r backend/requirements.txt
 
 ```bash
 source backend/venv/bin/activate
-sudo backend/venv/bin/python startup.py
+sudo backend/venv/bin/python main.py
 ```
 
 Для автоматического запуска при загрузке Raspberry Pi скопируйте файл
