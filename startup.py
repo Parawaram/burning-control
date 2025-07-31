@@ -4,22 +4,16 @@ from pathlib import Path
 
 
 def main():
-    root = Path(__file__).resolve().parent / 'backend'
+    root = Path(__file__).resolve().parent
     python = sys.executable
-    processes = [
-        subprocess.Popen([python, str(root / 'app.py')]),
-        subprocess.Popen([python, str(root / 'oled_small.py')])
-    ]
+    p = subprocess.Popen([python, str(root / 'main.py')])
     try:
-        for p in processes:
-            p.wait()
+        p.wait()
     except KeyboardInterrupt:
         pass
     finally:
-        for p in processes:
-            if p.poll() is None:
-                p.terminate()
-        for p in processes:
+        if p.poll() is None:
+            p.terminate()
             try:
                 p.wait(timeout=5)
             except subprocess.TimeoutExpired:
