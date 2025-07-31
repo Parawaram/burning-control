@@ -7,6 +7,14 @@ from dht_sensor import read_data as read_dht
 from teency_service import start as start_teency, get_data as get_teency_data
 import random
 import time
+import json
+import logging
+import queue
+try:
+    import serial  # type: ignore
+except Exception as e:  # pragma: no cover - optional
+    serial = None
+    logging.error("pyserial not available: %s", e)
 
 app = Flask(
     __name__,
@@ -175,5 +183,38 @@ def api_sensors():
         'dht11': {'status': 'on', **dht} if dht else {'status': 'off'},
     })
 
+def run(q):
+    """Read JSON telemetry from serial and put packets onto the queue."""
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger(__name__)
+    if serial is None:
+        log.error("Serial library unavailable")
+        return
+    try:
+        ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.1)
+    except Exception as e:  # pragma: no cover - hardware optional
+        log.error("Serial open failed: %s", e)
+        return
+    while True:
+        try:
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
+            if not line:
+                continue
+            try:
+                pkt = {"type": "telemetry", **json.loads(line)}
+            except Exception as e:
+                log.warning("Bad packet: %s", e)
+                continue
+            try:
+                q.put_nowait(pkt)
+            except queue.Full:
+                log.warning("queue full, dropping packet")
+        except KeyboardInterrupt:
+            break
+        except Exception as e:  # pragma: no cover - hardware optional
+            log.warning("serial read failed: %s", e)
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    from multiprocessing import Queue
+    run(Queue())
