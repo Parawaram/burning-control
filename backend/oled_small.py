@@ -12,8 +12,8 @@ except Exception as e:  # pragma: no cover - hardware optional
     Image = ImageDraw = ImageFont = adafruit_ssd1306 = None
     logging.error("Required hardware libraries not available: %s", e)
 
-from telemetry_service import get_telemetry
-from teency_service import (
+from .telemetry_service import get_telemetry
+from .teency_service import (
     DEFAULT_DATA,
     get_data as get_teency_data,
 )
