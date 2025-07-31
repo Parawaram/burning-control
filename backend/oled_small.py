@@ -1,14 +1,14 @@
 import time
 import logging
+import queue
 
 try:
     import board
     import busio
-    import digitalio
     from PIL import Image, ImageDraw, ImageFont
     import adafruit_ssd1306
 except Exception as e:  # pragma: no cover - hardware optional
-    board = busio = digitalio = None
+    board = busio = None
     Image = ImageDraw = ImageFont = adafruit_ssd1306 = None
     logging.error("Required hardware libraries not available: %s", e)
 
@@ -48,12 +48,9 @@ class OLEDApp:
     WIDTH = 64
     HEIGHT = 48
 
-    def __init__(self, addr=0x3C, left_pin=5, right_pin=6):
+    def __init__(self, addr=0x3C):
         self.addr = addr
-        self.left_pin = left_pin
-        self.right_pin = right_pin
         self._setup_display()
-        self._setup_buttons()
         self.pages = []
         self.page_index = 0
         self.last_update = 0
@@ -81,17 +78,6 @@ class OLEDApp:
         if self.display is None:
             self._setup_display()
 
-    def _setup_buttons(self):
-        if digitalio is None:
-            self.button_left = None
-            self.button_right = None
-            return
-        self.button_left = digitalio.DigitalInOut(getattr(board, f"D{self.left_pin}"))
-        self.button_left.direction = digitalio.Direction.INPUT
-        self.button_left.pull = digitalio.Pull.UP
-        self.button_right = digitalio.DigitalInOut(getattr(board, f"D{self.right_pin}"))
-        self.button_right.direction = digitalio.Direction.INPUT
-        self.button_right.pull = digitalio.Pull.UP
 
     # --- Display helpers -------------------------------------------------
     def _clear(self):
@@ -171,10 +157,6 @@ class OLEDApp:
         try:
             while True:
                 now = time.time()
-                if self.button_left and not self.button_left.value:
-                    self.prev_page()
-                if self.button_right and not self.button_right.value:
-                    self.next_page()
                 if now - self.last_update >= 0.5:
                     current = self.pages[self.page_index]
                     current.render()
@@ -197,10 +179,63 @@ class OLEDApp:
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    # ensure telemetry from Teensy is read in this process
-    start_teency()
+    # standalone preview mode
     app = OLEDApp()
     app.run()
+
+
+def run(q):
+    """Run OLED display worker using packets from a queue."""
+    logging.basicConfig(level=logging.INFO)
+    app = OLEDApp()
+    last_pkt = {}
+
+    def render_from_pkt():
+        data = get_telemetry()
+        cpu = data.get('cpu_usage')
+        teency = last_pkt or fetch_teency()
+        vs_pibrain = teency.get('voltageSensorV5PiBrain', {})
+        volt_5 = vs_pibrain.get('voltage', 0.0)
+        amp_5 = vs_pibrain.get('current', 0.0)
+        vs_3 = teency.get('voltageSensorV3', {})
+        volt_3 = vs_3.get('voltage', 0.0)
+
+        status = "OK"
+        if cpu and cpu > 90:
+            status = "ERR"
+        app._clear()
+        app.draw.text((0, 0), f"CPU:{cpu or 0:>4}%", font=app.font, fill=255)
+        app.draw.text((0, 10), f"V:{volt_5:4.1f}V", font=app.font, fill=255)
+        app.draw.text((0, 20), f"B:{amp_5:4.1f}A", font=app.font, fill=255)
+        app.draw.text((0, 30), f"V3:{volt_3:4.1f}V", font=app.font, fill=255)
+        app.draw.text((50, 0), status, font=app.font, fill=255)
+        app._update()
+
+    if not app.pages:
+        app.add_page(Page("home", render_from_pkt))
+    app.show_logo()
+    try:
+        while True:
+            try:
+                pkt = q.get(timeout=0.2)
+                if isinstance(pkt, dict):
+                    if pkt.get("type") == "telemetry":
+                        last_pkt = pkt
+                    elif pkt.get("type") == "cmd" and pkt.get("cmd") == "page":
+                        idx = pkt.get("idx")
+                        if isinstance(idx, int) and app.pages:
+                            app.page_index = idx % len(app.pages)
+            except queue.Empty:
+                pass
+            now = time.time()
+            if now - app.last_update >= 0.5:
+                app.pages[app.page_index].render()
+                app.last_update = now
+            time.sleep(0.05)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        app.shutdown()
 
 
 if __name__ == "__main__":
