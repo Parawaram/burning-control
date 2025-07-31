@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
-from neopixel_controller import fill, off, set_brightness, run_animation
-from telemetry_service import get_telemetry
-from temperature_sensor import read_temperature
-from aht_sensor import read_data as read_aht, read_all as read_all_aht
-from dht_sensor import read_data as read_dht
-from teency_service import start as start_teency, get_data as get_teency_data
+from .neopixel_controller import fill, off, set_brightness, run_animation
+from .telemetry_service import get_telemetry
+from .temperature_sensor import read_temperature
+from .aht_sensor import read_data as read_aht, read_all as read_all_aht
+from .dht_sensor import read_data as read_dht
+from .teency_service import start as start_teency, get_data as get_teency_data
 import random
 import time
 import json
