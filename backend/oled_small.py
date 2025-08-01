@@ -20,18 +20,34 @@ except Exception as e:  # pragma: no cover – запускаем и без же
 _teency_data: dict = {}
 
 # ---------------------------------------------------------------------------
+class _NullDraw:
+    """Fallback drawing object used when no OLED is attached."""
+
+    def rectangle(self, *a, **k):
+        pass
+
+    def text(self, *a, **k):
+        pass
+
+
 class OLED:
-    WIDTH  = 64
+    WIDTH = 64
     HEIGHT = 48
 
     def __init__(self, addr: int = 0x3C):
         self.addr = addr
         self.display = None
+        self.image = None
+        self.draw = _NullDraw()
+        self.font = None
         self._last_try = 0.0  # last time we attempted to (re)connect
         self._setup()
 
     def _setup(self):
         if board is None:
+            self.draw = _NullDraw()
+            self.image = None
+            self.font = None
             return
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
@@ -44,6 +60,9 @@ class OLED:
         except Exception as e:  # pragma: no cover
             logging.warning("OLED init failed: %s", e)
             self.display = None
+            self.draw = _NullDraw()
+            self.image = None
+            self.font = None
             self._last_try = time.time()
 
     def _update(self):
