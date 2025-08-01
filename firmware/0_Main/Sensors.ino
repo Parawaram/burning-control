@@ -17,7 +17,22 @@ static bool aht1_ok = false;
 static bool aht2_ok = false;
 
 
-static void readIna(Adafruit_INA219 &sensor, bool okFlag, VoltageSensorData &out) {
+static bool startIna(Adafruit_INA219 &sensor) {
+  for (int i = 0; i < 3; ++i) {
+    if (sensor.begin()) return true;
+    delay(10);
+  }
+  return false;
+}
+
+static void ensureInaStarted(Adafruit_INA219 &sensor, bool &okFlag) {
+  if (!okFlag) {
+    okFlag = startIna(sensor);
+  }
+}
+
+static void readIna(Adafruit_INA219 &sensor, bool &okFlag, VoltageSensorData &out) {
+  ensureInaStarted(sensor, okFlag);
   if (!okFlag) {
     out.current = 0.0f;
     out.voltage = 0.0f;
@@ -29,8 +44,12 @@ static void readIna(Adafruit_INA219 &sensor, bool okFlag, VoltageSensorData &out
   float i = sensor.getCurrent_mA() / 1000.0f;
   bool ok = !isnan(v) && !isinf(v) && !isnan(i) && !isinf(i);
   if (!ok) {
-    v = 0.0f;
-    i = 0.0f;
+    okFlag = false;
+    out.voltage = 0.0f;
+    out.current = 0.0f;
+    out.power = 0.0f;
+    out.isAvailable = false;
+    return;
   }
   float p = v * i;
   if (isnan(p) || isinf(p)) {
@@ -39,7 +58,7 @@ static void readIna(Adafruit_INA219 &sensor, bool okFlag, VoltageSensorData &out
   out.voltage = v;
   out.current = i;
   out.power = p;
-  out.isAvailable = ok;
+  out.isAvailable = true;
 }
 
 static void readAHT(Adafruit_AHTX0 &sensor, bool okFlag, TemperatureSensorData &out) {
@@ -64,10 +83,10 @@ static void readAHT(Adafruit_AHTX0 &sensor, bool okFlag, TemperatureSensorData &
 }
 
 void initSensors() {
-  v3_ok = sensorV3.begin();
-  v5_ok = sensorV5.begin();
-  v5pb_ok = sensorV5PiBrain.begin();
-  v24_ok = sensorV24.begin();
+  v3_ok = startIna(sensorV3);
+  v5_ok = startIna(sensorV5);
+  v5pb_ok = startIna(sensorV5PiBrain);
+  v24_ok = startIna(sensorV24);
   // pass explicit Wire instance and sensor ID to avoid implicit int conversion
   aht1_ok = aht1.begin(&Wire, -1, 0x38);
   aht2_ok = aht2.begin(&Wire, -1, 0x39);
