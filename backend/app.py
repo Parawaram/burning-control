@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from .neopixel_controller import fill, off, set_brightness, run_animation
 from .telemetry_service import get_telemetry
 from .temperature_sensor import read_temperature
-from .aht_sensor import read_data as read_aht, read_all as read_all_aht
 from .dht_sensor import read_data as read_dht
 import random
 import time
@@ -149,22 +148,32 @@ def api_temperature():
     return jsonify({'temperature': temp} if temp is not None else {})
 
 
+def _teency_aht(idx: int):
+    data = get_teency_data()
+    key = f"temperatureSensor{idx}"
+    val = data.get(key)
+    if not isinstance(val, dict) or not val.get("isAvailable"):
+        return {'status': 'off'}
+    return {
+        'status': 'on',
+        'temperature': val.get('temperature'),
+        'humidity': val.get('humidity'),
+    }
+
+
 @app.get('/api/aht20')
 def api_aht20():
     index_param = request.args.get('idx')
     if request.args.get('all') is not None:
-        return jsonify(read_all_aht())
+        return jsonify({str(i): _teency_aht(i) for i in (1, 2)})
     if index_param is not None:
         try:
             idx = int(index_param)
         except ValueError:
             return jsonify({})
-        data = read_aht(idx)
     else:
-        data = read_aht()
-    if data is None:
-        return jsonify({'status': 'off'})
-    return jsonify({'status': 'on', **data})
+        idx = 1
+    return jsonify(_teency_aht(idx))
 
 
 @app.get('/api/dht11')
@@ -188,7 +197,7 @@ def api_sensors():
     return jsonify({
         'teency': get_teency_data(),
         'temperature': read_temperature(),
-        'aht20': read_all_aht(),
+        'aht20': {str(i): _teency_aht(i) for i in (1, 2)},
         'dht11': {'status': 'on', **dht} if dht else {'status': 'off'},
     })
 
