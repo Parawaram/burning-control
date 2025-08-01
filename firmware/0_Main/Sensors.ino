@@ -20,6 +20,9 @@ Adafruit_AHTX0 aht2; // address 0x39
 
 static bool aht1_ok = false;
 static bool aht2_ok = false;
+
+static constexpr uint8_t ADDR_AHT1 = 0x38;
+static constexpr uint8_t ADDR_AHT2 = 0x39;
 static bool checkInaAlive(uint8_t addr) {
   Wire.beginTransmission(addr);
   return Wire.endTransmission() == 0;
@@ -37,6 +40,25 @@ static bool startIna(Adafruit_INA219 &sensor) {
 static void ensureInaStarted(Adafruit_INA219 &sensor, bool &okFlag) {
   if (!okFlag) {
     okFlag = startIna(sensor);
+  }
+}
+
+static bool checkAhtAlive(uint8_t addr) {
+  Wire.beginTransmission(addr);
+  return Wire.endTransmission() == 0;
+}
+
+static bool startAht(Adafruit_AHTX0 &sensor, uint8_t addr) {
+  for (int i = 0; i < 3; ++i) {
+    if (sensor.begin(&Wire, -1, addr)) return true;
+    delay(10);
+  }
+  return false;
+}
+
+static void ensureAhtStarted(Adafruit_AHTX0 &sensor, uint8_t addr, bool &okFlag) {
+  if (!okFlag) {
+    okFlag = startAht(sensor, addr);
   }
 }
 
@@ -78,7 +100,15 @@ static void readIna(Adafruit_INA219 &sensor, uint8_t addr, bool &okFlag, Voltage
   out.isAvailable = true;
 }
 
-static void readAHT(Adafruit_AHTX0 &sensor, bool okFlag, TemperatureSensorData &out) {
+static void readAHT(Adafruit_AHTX0 &sensor, uint8_t addr, bool &okFlag, TemperatureSensorData &out) {
+  if (!checkAhtAlive(addr)) {
+    okFlag = false;
+    out.temperature = 0.0f;
+    out.humidity = 0.0f;
+    out.isAvailable = false;
+    return;
+  }
+  ensureAhtStarted(sensor, addr, okFlag);
   if (!okFlag) {
     out.temperature = 0.0f;
     out.humidity = 0.0f;
@@ -105,8 +135,8 @@ void initSensors() {
   v5pb_ok = startIna(sensorV5PiBrain);
   v24_ok = startIna(sensorV24);
   // pass explicit Wire instance and sensor ID to avoid implicit int conversion
-  aht1_ok = aht1.begin(&Wire, -1, 0x38);
-  aht2_ok = aht2.begin(&Wire, -1, 0x39);
+  aht1_ok = startAht(aht1, ADDR_AHT1);
+  aht2_ok = startAht(aht2, ADDR_AHT2);
 }
 
 void pollSensors() {
@@ -115,8 +145,8 @@ void pollSensors() {
   readIna(sensorV5, ADDR_V5, v5_ok, data.voltageSensorV5);
   readIna(sensorV5PiBrain, ADDR_V5PB, v5pb_ok, data.voltageSensorV5PiBrain);
   readIna(sensorV24, ADDR_V24, v24_ok, data.voltageSensorV24);
-  readAHT(aht1, aht1_ok, data.temperatureSensor1);
-  readAHT(aht2, aht2_ok, data.temperatureSensor2);
+  readAHT(aht1, ADDR_AHT1, aht1_ok, data.temperatureSensor1);
+  readAHT(aht2, ADDR_AHT2, aht2_ok, data.temperatureSensor2);
   data.button = buttonPressed();
   data.relay1 = digitalRead(PIN_RELAY1);
   data.relay2 = digitalRead(PIN_RELAY2);
