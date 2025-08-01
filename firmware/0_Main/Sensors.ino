@@ -1,9 +1,14 @@
 #include "Globals.h"
 
-Adafruit_INA219 sensorV3(0x40);       // 3.3V
-Adafruit_INA219 sensorV5(0x41);       // 5V
-Adafruit_INA219 sensorV5PiBrain(0x44); // 5V Pi Brain
-Adafruit_INA219 sensorV24(0x45);      // 24V
+static constexpr uint8_t ADDR_V3  = 0x40;  // 3.3V
+static constexpr uint8_t ADDR_V5  = 0x41;  // 5V
+static constexpr uint8_t ADDR_V5PB = 0x44; // 5V Pi Brain
+static constexpr uint8_t ADDR_V24 = 0x45;  // 24V
+
+Adafruit_INA219 sensorV3(ADDR_V3);
+Adafruit_INA219 sensorV5(ADDR_V5);
+Adafruit_INA219 sensorV5PiBrain(ADDR_V5PB);
+Adafruit_INA219 sensorV24(ADDR_V24);
 
 static bool v3_ok = false;
 static bool v5_ok = false;
@@ -15,6 +20,10 @@ Adafruit_AHTX0 aht2; // address 0x39
 
 static bool aht1_ok = false;
 static bool aht2_ok = false;
+static bool checkInaAlive(uint8_t addr) {
+  Wire.beginTransmission(addr);
+  return Wire.endTransmission() == 0;
+}
 
 
 static bool startIna(Adafruit_INA219 &sensor) {
@@ -31,7 +40,15 @@ static void ensureInaStarted(Adafruit_INA219 &sensor, bool &okFlag) {
   }
 }
 
-static void readIna(Adafruit_INA219 &sensor, bool &okFlag, VoltageSensorData &out) {
+static void readIna(Adafruit_INA219 &sensor, uint8_t addr, bool &okFlag, VoltageSensorData &out) {
+  if (!checkInaAlive(addr)) {
+    okFlag = false;
+    out.current = 0.0f;
+    out.voltage = 0.0f;
+    out.power = 0.0f;
+    out.isAvailable = false;
+    return;
+  }
   ensureInaStarted(sensor, okFlag);
   if (!okFlag) {
     out.current = 0.0f;
@@ -94,10 +111,10 @@ void initSensors() {
 
 void pollSensors() {
   data.ts = millis();
-  readIna(sensorV3, v3_ok, data.voltageSensorV3);
-  readIna(sensorV5, v5_ok, data.voltageSensorV5);
-  readIna(sensorV5PiBrain, v5pb_ok, data.voltageSensorV5PiBrain);
-  readIna(sensorV24, v24_ok, data.voltageSensorV24);
+  readIna(sensorV3, ADDR_V3, v3_ok, data.voltageSensorV3);
+  readIna(sensorV5, ADDR_V5, v5_ok, data.voltageSensorV5);
+  readIna(sensorV5PiBrain, ADDR_V5PB, v5pb_ok, data.voltageSensorV5PiBrain);
+  readIna(sensorV24, ADDR_V24, v24_ok, data.voltageSensorV24);
   readAHT(aht1, aht1_ok, data.temperatureSensor1);
   readAHT(aht2, aht2_ok, data.temperatureSensor2);
   data.button = buttonPressed();
