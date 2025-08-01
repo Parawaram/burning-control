@@ -27,6 +27,7 @@ class OLED:
     def __init__(self, addr: int = 0x3C):
         self.addr = addr
         self.display = None
+        self._last_try = 0.0  # last time we attempted to (re)connect
         self._setup()
 
     def _setup(self):
@@ -39,19 +40,26 @@ class OLED:
             self.draw    = ImageDraw.Draw(self.image)
             self.font    = ImageFont.load_default()
             logging.info("OLED ready at 0x%X", self.addr)
+            self._last_try = time.time()
         except Exception as e:  # pragma: no cover
             logging.warning("OLED init failed: %s", e)
             self.display = None
+            self._last_try = time.time()
 
     def _update(self):
         if not self.display:
+            if time.time() - self._last_try > 5:
+                self._last_try = time.time()
+                self._setup()
             return
         try:
             self.display.image(self.image)
             self.display.show()
         except OSError as e:  # pragma: no cover
             logging.warning("OLED I/O error: %s", e)
+            logging.info("OLED disconnected")
             self.display = None
+            self._last_try = 0.0
 
     def loop(self):
         last = 0.0
