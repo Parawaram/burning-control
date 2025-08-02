@@ -23,7 +23,9 @@ def _listener(q):
             continue
 
 def get_teency_data():        # used by /api/teency etc.
-    return _teency or {"status":"wait"}
+    if _teency:
+        return {**_teency, "status": _teency.get("status", "ok")}
+    return {"status": "wait"}
 
 app = Flask(
     __name__,
