@@ -49,7 +49,10 @@ class AHTSensor:
 
 
 _sensors = {}
-DEFAULT_ADDRESSES = {1: 0x38, 2: 0x39}
+# Only one AHT20 sensor is used by default and it is fixed at address 0x38.
+# A second sensor on 0x39 was previously supported but caused issues when only
+# a single device is present and its address cannot be changed.
+DEFAULT_ADDRESSES = {1: 0x38}
 
 
 def _get_sensor(index: int) -> AHTSensor:

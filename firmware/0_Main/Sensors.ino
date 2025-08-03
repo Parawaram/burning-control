@@ -16,13 +16,10 @@ static bool v5pb_ok = false;
 static bool v24_ok = false;
 
 Adafruit_AHTX0 aht1; // address 0x38
-Adafruit_AHTX0 aht2; // address 0x39
 
 static bool aht1_ok = false;
-static bool aht2_ok = false;
 
 static constexpr uint8_t ADDR_AHT1 = 0x38;
-static constexpr uint8_t ADDR_AHT2 = 0x39;
 static bool checkInaAlive(uint8_t addr) {
   Wire.beginTransmission(addr);
   return Wire.endTransmission() == 0;
@@ -136,7 +133,6 @@ void initSensors() {
   v24_ok = startIna(sensorV24);
   // pass explicit Wire instance and sensor ID to avoid implicit int conversion
   aht1_ok = startAht(aht1, ADDR_AHT1);
-  aht2_ok = startAht(aht2, ADDR_AHT2);
 }
 
 void pollSensors() {
@@ -146,7 +142,6 @@ void pollSensors() {
   readIna(sensorV5PiBrain, ADDR_V5PB, v5pb_ok, data.voltageSensorV5PiBrain);
   readIna(sensorV24, ADDR_V24, v24_ok, data.voltageSensorV24);
   readAHT(aht1, ADDR_AHT1, aht1_ok, data.temperatureSensor1);
-  readAHT(aht2, ADDR_AHT2, aht2_ok, data.temperatureSensor2);
   data.button = buttonPressed();
   data.relay1 = digitalRead(PIN_RELAY1);
   data.relay2 = digitalRead(PIN_RELAY2);

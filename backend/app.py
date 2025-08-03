@@ -165,7 +165,7 @@ def _teency_aht(idx: int):
 def api_aht20():
     index_param = request.args.get('idx')
     if request.args.get('all') is not None:
-        return jsonify({str(i): _teency_aht(i) for i in (1, 2)})
+        return jsonify({"1": _teency_aht(1)})
     if index_param is not None:
         try:
             idx = int(index_param)
@@ -197,7 +197,7 @@ def api_sensors():
     return jsonify({
         'teency': get_teency_data(),
         'temperature': read_temperature(),
-        'aht20': {str(i): _teency_aht(i) for i in (1, 2)},
+        'aht20': {'1': _teency_aht(1)},
         'dht11': {'status': 'on', **dht} if dht else {'status': 'off'},
     })
 
