@@ -45,8 +45,7 @@ void sendJson() {
   printVoltageSensor("voltageSensorV5", data.voltageSensorV5);
   printVoltageSensor("voltageSensorV5PiBrain", data.voltageSensorV5PiBrain);
   printVoltageSensor("voltageSensorV24", data.voltageSensorV24);
-  printTempSensor("temperatureSensor1", data.temperatureSensor1);
-  printTempSensor("temperatureSensor2", data.temperatureSensor2, true);
+  printTempSensor("temperatureSensor1", data.temperatureSensor1, true);
   Serial.print('}');
   Serial.print('\n');
 }
