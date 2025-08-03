@@ -4,6 +4,7 @@ import logging
 import threading
 import time
 import queue
+import signal
 
 # --- попытка подключить аппаратные библиотеки ---
 try:
@@ -80,6 +81,18 @@ class OLED:
             self.display = None
             self._last_try = 0.0
 
+    def poweroff(self):
+        """Clear the screen and try to power down the display."""
+        if not self.display:
+            return
+        try:
+            self.display.fill(0)
+            self.display.show()
+            if hasattr(self.display, "poweroff"):
+                self.display.poweroff()
+        except Exception as e:  # pragma: no cover
+            logging.warning("OLED poweroff failed: %s", e)
+
     def loop(self):
         last = 0.0
         while True:
@@ -121,8 +134,20 @@ def _listener(q):
 def run(q):
     """Вызывается orchestrator'ом main.py"""
     logging.basicConfig(level=logging.INFO)
+    oled = OLED()
     threading.Thread(target=_listener, args=(q,), daemon=True).start()
-    OLED().loop()
+
+    def _cleanup(signum, frame):  # pragma: no cover - hardware cleanup
+        oled.poweroff()
+        raise SystemExit
+
+    signal.signal(signal.SIGTERM, _cleanup)
+    signal.signal(signal.SIGINT, _cleanup)
+
+    try:
+        oled.loop()
+    finally:
+        oled.poweroff()
 
 
 def main():
