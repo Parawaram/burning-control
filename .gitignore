@@ -2,3 +2,4 @@ backend/venv/
 __pycache__/
 .vs/
 telemetry.log
+system.log*
