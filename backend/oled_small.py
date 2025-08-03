@@ -1,6 +1,7 @@
 ﻿# backend/oled_small.py — минимальный вывод пяти параметров на маленький OLED
 
 import logging
+from logging.handlers import RotatingFileHandler
 import threading
 import time
 import queue
@@ -120,7 +121,6 @@ def _listener(q):
 
 def run(q):
     """Вызывается orchestrator'ом main.py"""
-    logging.basicConfig(level=logging.INFO)
     threading.Thread(target=_listener, args=(q,), daemon=True).start()
     OLED().loop()
 
@@ -128,6 +128,11 @@ def run(q):
 def main():
     """Standalone запуск на ПК/PI без очереди."""
     from multiprocessing import Queue
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+        handlers=[RotatingFileHandler("system.log", maxBytes=1_000_000, backupCount=5)],
+    )
     run(Queue())
 
 

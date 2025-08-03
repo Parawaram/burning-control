@@ -1,5 +1,6 @@
 import importlib, logging, time
 from multiprocessing import Process, Queue
+from logging.handlers import RotatingFileHandler
 
 workers = {
     # single UART reader
@@ -12,7 +13,12 @@ workers = {
 }
 
 def main():
-    logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
+    handler = RotatingFileHandler("system.log", maxBytes=1_000_000, backupCount=5)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+        handlers=[handler],
+    )
     q = Queue(maxsize=200)
     procs = []
     for name, mp in workers.items():
