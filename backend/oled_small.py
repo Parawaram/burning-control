@@ -4,6 +4,7 @@ import logging
 import threading
 import time
 import queue
+from .telemetry_service import read_cpu_usage
 
 # --- попытка подключить аппаратные библиотеки ---
 try:
@@ -92,12 +93,13 @@ class OLED:
     def render(self):
         # получаем актуальные данные (или нули)
         d = _teency_data or {}
-        cpu   = d.get("cpu_usage", 0)
+        cpu_raw = read_cpu_usage()
+        cpu = cpu_raw if cpu_raw is not None else 0.0
         v5    = d.get("voltageSensorV5PiBrain", {})
         v3    = d.get("voltageSensorV3",       {})
 
         self.draw.rectangle((0, 0, self.WIDTH, self.HEIGHT), fill=0)  # clear
-        self.draw.text((0,  0), f"CPU:{cpu:>3}%",               font=self.font, fill=255)
+        self.draw.text((0,  0), f"CPU:{cpu:4.1f}%",              font=self.font, fill=255)
         self.draw.text((0, 10), f"V5 :{v5.get('voltage',0):4.2f}V", font=self.font, fill=255)
         self.draw.text((0, 20), f"I5 :{v5.get('current',0):4.2f}A", font=self.font, fill=255)
         self.draw.text((0, 30), f"V3 :{v3.get('voltage',0):4.2f}V", font=self.font, fill=255)
